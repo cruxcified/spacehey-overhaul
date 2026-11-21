@@ -1,0 +1,590 @@
+/* ==UserStyle==
+@name           SpaceHey Overhaul
+@namespace      spacehey-overhaul
+@version        1.0.2
+@description    Widescreen SpaceHey with a Windows 98 blog editor. Only touches SpaceHey's own pages; profiles, people's blogs and blog entries, group pages and layout pages are left exactly as their owners made them.
+@license        MIT
+@homepageURL    https://github.com/cruxcified/spacehey-overhaul
+@updateURL      https://raw.githubusercontent.com/cruxcified/spacehey-overhaul/main/spacehey-overhaul.user.css
+@preprocessor   default
+@var range  pageWidth    "Max page width"              [1400, 810, 1920, 10, "px"]
+@var range  sideGutter   "Space at the sides"          [3, 0, 10, 1, "vw"]
+@var range  fontScale    "Text size (%)"               [88, 80, 110, 1, "%"]
+@var range  leftCol      "Home: left column width"     [360, 300, 520, 10, "px"]
+@var range  friendPic    "Home: Cool New People photo size" [96, 80, 140, 4, "px"]
+@var color  desktop      "Blog editor: desktop color"  #008080
+@var color  titleA       "Blog editor: title bar (left)"  #000080
+@var color  titleB       "Blog editor: title bar (right)" #1084d0
+@var color  paperLine    "Blog editor: paper lines (transparent = plain)" #dbe7f5
+@var range  editorHeight "Blog editor: writing area height" [460, 260, 900, 20, "px"]
+@var range  tipWidth     "Blog editor: tip window width"    [240, 180, 360, 10, "px"]
+@var select uiFont       "Blog editor: interface font" {
+  "Win98 pixel font (downloads from unpkg)": "'W98 Sans', Tahoma, 'MS Sans Serif', Geneva, sans-serif",
+  "Tahoma (no download)":                    "Tahoma, 'MS Sans Serif', Geneva, Verdana, sans-serif"
+}
+==/UserStyle== */
+
+/* WHERE THIS APPLIES
+   Stylus only turns this on for the addresses listed in each
+   @-moz-document line below. It is an allow-list on purpose: SpaceHey
+   profiles can live at spacehey.com/<anyname>, so "everything except
+   profiles" can't be written safely. A SpaceHey page that isn't listed
+   just stays stock.
+
+   Never touched:
+     spacehey.com/profile?id=...  and  spacehey.com/<username>  (profiles)
+     blog.spacehey.com/user?id=...   (someone's blog)
+     blog.spacehey.com/entry?id=...  (a blog post)
+     groups.spacehey.com/group?id=...   (a group's page)
+     layouts.spacehey.com/layout?id=... (a layout someone made)
+     im.spacehey.com, shop.spacehey.com
+
+   To add a page, add its name to the list in section A, e.g. |settings */
+
+/* =====================================================================
+   A. ALL OUTER PAGES: widescreen frame
+   ===================================================================== */
+@-moz-document regexp("https://(www\\.)?spacehey\\.com/(home|browse|search|bulletins|bulletin|favorites|invite|mobile|about|help|news|rules|credits|topmusic|friends|requests|notifications|settings|inbox|support|donate|report)?([?#].*)?"),
+               regexp("https://blog\\.spacehey\\.com/(?!user\\b|entry\\b).*"),
+               regexp("https://forum\\.spacehey\\.com/.*"),
+               regexp("https://groups\\.spacehey\\.com/(?!group\\b).*"),
+               regexp("https://layouts\\.spacehey\\.com/(?!layout\\b).*") {
+
+  /* Stock is a fixed 810px column. Let it grow with the window, capped at
+     pageWidth so lines stay readable on ultrawides. Most SpaceHey pages
+     use percentage columns, so they spread out on their own. */
+  .container {
+    width: calc(100vw - (var(--sideGutter, 3vw) * 2)) !important;
+    max-width: var(--pageWidth, 1400px) !important;
+  }
+  main {
+    font-size: var(--fontScale, 88%) !important;
+  }
+
+  @media (max-width: 30em) {
+    .container {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+  }
+}
+
+/* =====================================================================
+   B. HOME PAGE extras (spacehey.com/home)
+   ===================================================================== */
+@-moz-document regexp("https://(www\\.)?spacehey\\.com/home([?#].*)?") {
+
+  /* ---------- 2. Two main columns ----------
+     Stock: left column is 40% of 810px (about 324px). On a wide page 40%
+     would make the profile box huge, so we pin it to a fixed width and give
+     everything else to the right column. The rows use display:table, so a
+     fixed width on one cell is enough. */
+  main .row > .col.w-40.left,
+  main .home .col.left {
+    width: var(--leftCol, 360px) !important;
+  }
+  main .row > .col.w-40.left + .col.right,
+  main .home .col.right {
+    width: auto !important;
+    padding-left: 22px !important;
+  }
+
+  /* Keep the profile photo and link list from stretching apart. */
+  .home-actions .more-options,
+  .general-about {
+    max-width: 100%;
+  }
+
+  /* ---------- 3. Right column top row ----------
+     Blog preview on the left, the blue stats box pinned to the right edge. */
+  .user-home .top-row .statistics,
+  .top-row .statistics {
+    margin-left: auto;
+    width: 180px;
+  }
+
+  /* ---------- 4. Cool New People ----------
+     Spread the people across the wider box and show slightly bigger photos. */
+  .new-people.cool .inner {
+    justify-content: space-around;
+    gap: 6px;
+  }
+  .new-people .person {
+    width: calc(var(--friendPic, 96px) + 10px) !important;
+  }
+  .new-people .person img:not(.icon) {
+    max-width: var(--friendPic, 96px) !important;
+    max-height: var(--friendPic, 96px) !important;
+  }
+
+  /* ---------- 5. Tables and previews ----------
+     The bulletin table is already width:100%, so it fills the new space.
+     Give the Subject column the extra room instead of splitting 50/50. */
+  .bulletin-preview table th:first-child,
+  .bulletin-preview table td:first-child {
+    width: 28%;
+  }
+
+  /* Announcements: the shop image stays the same size, text gets the room. */
+  .specials .inner {
+    min-height: 0;
+  }
+  .specials .inner::after {
+    content: "";
+    display: block;
+    clear: both;
+  }
+
+  /* ---------- 6. Phones ----------
+     SpaceHey switches to a stacked mobile layout under 30em. Don't fight it. */
+  @media (max-width: 30em) {
+    .container {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    main .row > .col.w-40.left,
+    main .home .col.left,
+    main .home .col.right {
+      width: 100% !important;
+      padding-left: 10px !important;
+    }
+  }
+}
+
+/* =====================================================================
+   C. BLOG EDITOR "BlogPad" (blog.spacehey.com/edit)
+   ===================================================================== */
+@-moz-document regexp("https://blog\\.spacehey\\.com/edit([?#].*)?") {
+
+  /* The pixel font is the same file 98.css ships. If SpaceHey's security
+     headers ever block it, everything falls back to Tahoma. */
+  @font-face {
+    font-family: "W98 Sans";
+    src: url("https://unpkg.com/98.css@0.1.21/dist/ms_sans_serif.woff2") format("woff2");
+    font-weight: normal;
+  }
+  @font-face {
+    font-family: "W98 Sans";
+    src: url("https://unpkg.com/98.css@0.1.21/dist/ms_sans_serif_bold.woff2") format("woff2");
+    font-weight: bold;
+  }
+
+  :root {
+    --w98-face:   #c0c0c0;
+    --w98-light:  #dfdfdf;
+    --w98-shadow: #808080;
+    --w98-dark:   #0a0a0a;
+    --w98-raised: inset -1px -1px var(--w98-dark), inset 1px 1px #fff,
+                  inset -2px -2px var(--w98-shadow), inset 2px 2px var(--w98-light);
+    --w98-window: inset -1px -1px var(--w98-dark), inset 1px 1px var(--w98-light),
+                  inset -2px -2px var(--w98-shadow), inset 2px 2px #fff;
+    --w98-sunken: inset -1px -1px #fff, inset 1px 1px var(--w98-shadow),
+                  inset -2px -2px var(--w98-light), inset 2px 2px var(--w98-dark);
+    --w98-pressed: inset -1px -1px #fff, inset 1px 1px var(--w98-dark),
+                   inset -2px -2px var(--w98-light), inset 2px 2px var(--w98-shadow);
+  }
+
+  /* ---------- 1. The desktop ----------
+     The white content area becomes the teal desktop. The nav bar above
+     stays SpaceHey blue so you still know where you are. */
+  /* Widescreen, same as the home page style: the page grows with the
+     window, capped at pageWidth. Stock is a fixed 810px. */
+  .container {
+    width: calc(100vw - (var(--sideGutter, 3vw) * 2)) !important;
+    max-width: var(--pageWidth, 1400px) !important;
+  }
+  main {
+    background: var(--desktop, #008080) !important;
+    padding: 14px 0 22px !important;
+    font-family: var(--uiFont, 'W98 Sans', Tahoma, 'MS Sans Serif', Geneva, sans-serif) !important;
+    font-size: 12px !important;
+  }
+
+  /* ---------- 2. The tip window (left column, .edit-info) ---------- */
+  main .col.w-20 {
+    width: var(--tipWidth, 240px) !important;
+  }
+  main .col.w-80 {
+    width: auto !important;
+  }
+  .edit-info {
+    position: relative;
+    background: var(--w98-face) !important;
+    border: 0 !important;
+    box-shadow: var(--w98-window);
+    padding: 26px 10px 10px 10px !important;
+    color: #000;
+    font-size: 11px;
+    line-height: 1.45;
+  }
+  .edit-info::before {
+    content: "Tip of the Day";
+    position: absolute;
+    inset: 3px 3px auto 3px;
+    height: 18px;
+    padding: 0 6px;
+    background: linear-gradient(90deg, var(--titleA, #000080), var(--titleB, #1084d0));
+    color: #fff;
+    font-weight: bold;
+    line-height: 18px;
+  }
+  .edit-info p {
+    background: #ffffe1;
+    box-shadow: var(--w98-sunken);
+    padding: 8px 9px;
+    margin: 0 0 6px 0 !important;
+    font-size: 11px !important;
+  }
+  .edit-info a {
+    color: #0000ee;
+    text-decoration: underline;
+  }
+
+  /* ---------- 3. The main window ----------
+     .edit-blog-entry is the form wrapper. The title bar is drawn with
+     ::before, the status bar with ::after. The _ [] x buttons are a
+     picture: they look right but they don't do anything. */
+  .edit-blog-entry {
+    position: relative;
+    background: var(--w98-face) !important;
+    box-shadow: var(--w98-window);
+    padding: 30px 14px 34px 14px !important;
+    color: #000;
+    margin: 0 10px 0 0;
+  }
+  .edit-blog-entry::before {
+    content: "\270E  BlogPad - Blog Entry";
+    position: absolute;
+    inset: 3px 3px auto 3px;
+    height: 20px;
+    padding: 0 6px;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='14'%3E%3Cg shape-rendering='crispEdges'%3E%3Cg id='b'%3E%3Crect width='16' height='14' fill='%23c0c0c0'/%3E%3Cpath d='M0 0h15v1H1v12H0z' fill='%23fff'/%3E%3Cpath d='M0 13h16v1H0zM15 0h1v14h-1z' fill='%230a0a0a'/%3E%3Cpath d='M1 12h14v1H1zM14 1h1v12h-1z' fill='%23808080'/%3E%3C/g%3E%3Cuse href='%23b' x='18'/%3E%3Cuse href='%23b' x='36'/%3E%3Cpath d='M4 9h6v2H4z'/%3E%3Cpath d='M21 2h9v9h-9zM22 4v6h7V4z'/%3E%3Cpath d='M40 3h2l2 2 2-2h2l-3 3.5 3 3.5h-2l-2-2-2 2h-2l3-3.5z'/%3E%3C/g%3E%3C/svg%3E")
+        no-repeat right 3px center,
+      linear-gradient(90deg, var(--titleA, #000080), var(--titleB, #1084d0));
+    color: #fff;
+    font-weight: bold;
+    font-size: 12px;
+    line-height: 20px;
+    white-space: pre;
+  }
+  .edit-blog-entry::after {
+    content: "Ready  \2502  Tip: there is no autosave, so copy long posts somewhere safe before you publish.";
+    position: absolute;
+    inset: auto 3px 3px 3px;
+    height: 20px;
+    padding: 0 6px;
+    box-shadow: var(--w98-sunken);
+    font-size: 11px;
+    line-height: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* "Create Blog Entry" heading: reads like the heading of a dialog. */
+  .edit-blog-entry h1,
+  .edit-blog-entry h2 {
+    font-family: var(--uiFont, 'W98 Sans', Tahoma, 'MS Sans Serif', Geneva, sans-serif) !important;
+    font-size: 15px !important;
+    margin: 8px 0 12px 0 !important;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--w98-shadow);
+    box-shadow: 0 1px 0 #fff;
+  }
+
+  .edit-blog-entry label,
+  .edit-blog-entry b,
+  .edit-blog-entry strong {
+    font-weight: bold;
+  }
+  .edit-blog-entry u {
+    text-decoration: none;
+  }
+  .edit-blog-entry p {
+    font-size: 11px !important;
+    color: #222;
+  }
+
+  /* ---------- 4. Text fields and the category dropdown ---------- */
+  .edit-blog-entry input[type=text],
+  .edit-blog-entry input:not([type]),
+  .edit-blog-entry select,
+  .edit-blog-entry textarea {
+    font-family: var(--uiFont, 'W98 Sans', Tahoma, 'MS Sans Serif', Geneva, sans-serif) !important;
+    font-size: 12px !important;
+    color: #000;
+    background-color: #fff !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: var(--w98-sunken) !important;
+    outline: none;
+  }
+  .edit-blog-entry input[type=text],
+  .edit-blog-entry input:not([type]) {
+    height: 26px;
+    padding: 3px 7px !important;
+    margin: 6px 0 12px 0 !important;
+    font-size: 14px !important;  /* the title deserves to be a bit bigger */
+  }
+  .edit-blog-entry select {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 22px;
+    min-width: 200px;
+    padding: 2px 26px 2px 5px !important;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='17'%3E%3Cg shape-rendering='crispEdges'%3E%3Crect width='16' height='17' fill='%23c0c0c0'/%3E%3Cpath d='M0 0h15v1H1v15H0z' fill='%23dfdfdf'/%3E%3Cpath d='M1 1h13v1H2v13H1z' fill='%23fff'/%3E%3Cpath d='M0 16h16v1H0zM15 0h1v17h-1z' fill='%230a0a0a'/%3E%3Cpath d='M1 15h14v1H1zM14 1h1v15h-1z' fill='%23808080'/%3E%3Cpath d='M4 6h7v1H4zM5 7h5v1H5zM6 8h3v1H6zM7 9h1v1H7z'/%3E%3C/g%3E%3C/svg%3E")
+        no-repeat right 2px center,
+      #fff !important;
+    cursor: default;
+  }
+  .edit-blog-entry input[type=text]:focus,
+  .edit-blog-entry select:focus,
+  .edit-blog-entry textarea:focus {
+    outline: 1px dotted #000;
+    outline-offset: -4px;
+  }
+
+  /* ---------- 5. The WYSIWYG editor ----------
+     div.wysiwyg is the editor box: a toolbar list followed by an iframe
+     (the writing area) and, in source mode, a textarea. We only restyle
+     the box; the icons are the editor's own and every button keeps
+     working. */
+  .edit-blog-entry .wysiwyg,
+  div.wysiwyg {
+    background: var(--w98-face) !important;
+    border: 0 !important;
+    box-shadow: var(--w98-raised);
+    padding: 3px !important;
+    margin: 6px 0 14px 0 !important;
+  }
+
+  /* Toolbar: a raised strip with a grab handle on the left, like IE5. */
+  div.wysiwyg > ul,
+  div.wysiwyg .toolbar,
+  div.wysiwyg .panel {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1px;
+    margin: 0 0 3px 0 !important;
+    padding: 3px 4px 3px 12px !important;
+    background-color: var(--w98-face) !important;
+    border: 0 !important;
+    box-shadow: inset 1px 1px #fff, inset -1px -1px var(--w98-shadow);
+    position: relative;
+    width: auto !important;
+    list-style: none;
+  }
+  div.wysiwyg > ul::before,
+  div.wysiwyg .toolbar::before,
+  div.wysiwyg .panel::before {
+    content: "";
+    position: absolute;
+    left: 4px; top: 4px; bottom: 4px;
+    width: 3px;
+    box-shadow: inset 1px 1px #fff, inset -1px -1px var(--w98-shadow);
+  }
+
+  /* Toolbar buttons: flat until you point at them, then they pop out,
+     and press in while clicked or while the format is on. Only the
+     background COLOR changes, so the icon images stay put. */
+  div.wysiwyg > ul > li,
+  div.wysiwyg .toolbar > li,
+  div.wysiwyg .panel > li,
+  div.wysiwyg button {
+    float: none !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background-color: transparent !important;
+    box-shadow: none;
+    cursor: default;
+  }
+  div.wysiwyg > ul > li:not(.separator):hover,
+  div.wysiwyg .toolbar > li:not(.separator):hover,
+  div.wysiwyg .panel > li:not(.separator):hover,
+  div.wysiwyg button:hover {
+    box-shadow: inset 1px 1px #fff, inset -1px -1px var(--w98-shadow);
+  }
+  div.wysiwyg > ul > li:not(.separator):active,
+  div.wysiwyg .toolbar > li:not(.separator):active,
+  div.wysiwyg .panel > li:not(.separator):active,
+  div.wysiwyg li.active,
+  div.wysiwyg button:active {
+    box-shadow: inset 1px 1px var(--w98-shadow), inset -1px -1px #fff;
+    background-color: var(--w98-light) !important;
+  }
+
+  /* Separators become the etched double line Win98 used. */
+  div.wysiwyg li.separator {
+    width: 2px !important;
+    min-width: 2px;
+    height: 20px !important;
+    margin: 0 4px !important;
+    padding: 0 !important;
+    background: none !important;
+    border-left: 1px solid var(--w98-shadow) !important;
+    border-right: 1px solid #fff !important;
+  }
+
+  /* The writing area. The iframe gets the sunken frame and a ruled-paper
+     background. Whether the lines show through depends on the editor
+     page inside the iframe having a transparent background (most do);
+     if it paints itself white you just get plain white paper. */
+  div.wysiwyg iframe,
+  .edit-blog-entry .wysiwyg iframe {
+    display: block;
+    width: 100% !important;
+    min-height: var(--editorHeight, 460px) !important;
+    border: 0 !important;
+    box-shadow: var(--w98-sunken);
+    background-color: #fff !important;
+    background-image:
+      linear-gradient(90deg, transparent 38px, #f3b6b6 38px, #f3b6b6 39px, transparent 39px),
+      repeating-linear-gradient(#fff 0 21px, var(--paperLine, #dbe7f5) 21px 22px) !important;
+    background-origin: content-box;
+    padding: 2px !important;
+  }
+  /* If the writing area is a plain editable box rather than an iframe,
+     give it the same white sunken paper. */
+  div.wysiwyg [contenteditable]:not([contenteditable=false]) {
+    display: block;
+    min-height: var(--editorHeight, 460px) !important;
+    padding: 8px 10px 8px 48px !important;
+    border: 0 !important;
+    outline: none;
+    box-shadow: var(--w98-sunken);
+    background-color: #fff !important;
+    background-image:
+      linear-gradient(90deg, transparent 38px, #f3b6b6 38px, #f3b6b6 39px, transparent 39px),
+      repeating-linear-gradient(#fff 0 21px, var(--paperLine, #dbe7f5) 21px 22px) !important;
+    background-attachment: local;
+    color: #000;
+    font: 13px/22px Georgia, "Times New Roman", serif;
+  }
+  /* Source (HTML) mode: same sunken frame, monospace text. */
+  div.wysiwyg textarea,
+  .edit-blog-entry textarea {
+    min-height: var(--editorHeight, 460px) !important;
+    font-family: "Lucida Console", "Courier New", monospace !important;
+    padding: 8px !important;
+  }
+
+  /* ---------- 6. Privacy and comment choices ----------
+     Win98 radio buttons: a sunken white circle with a black dot. They
+     are still the real inputs, just drawn differently. */
+  .edit-blog-entry input[type=radio],
+  .edit-blog-entry input[type=checkbox] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 13px;
+    height: 13px;
+    margin: 0 6px 0 0 !important;
+    vertical-align: -2px;
+    background: #fff;
+    position: relative;
+    cursor: default;
+  }
+  .edit-blog-entry input[type=radio] {
+    border-radius: 50%;
+    box-shadow: inset 1px 1px var(--w98-shadow), inset -1px -1px #fff,
+                inset 2px 2px var(--w98-dark), inset -2px -2px var(--w98-light);
+  }
+  .edit-blog-entry input[type=radio]:checked::after {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: #000;
+  }
+  /* Space between side-by-side choices (Enable / Disable Comments). */
+  .edit-blog-entry label + input[type=radio] {
+    margin-left: 14px !important;
+  }
+  .edit-blog-entry input[type=checkbox] {
+    box-shadow: var(--w98-sunken);
+  }
+  .edit-blog-entry input[type=checkbox]:checked::after {
+    content: "\2714";
+    position: absolute;
+    inset: 0;
+    font-size: 10px;
+    line-height: 13px;
+    text-align: center;
+    color: #000;
+  }
+  .edit-blog-entry input[type=radio]:focus-visible,
+  .edit-blog-entry input[type=checkbox]:focus-visible {
+    outline: 1px dotted #000;
+    outline-offset: 2px;
+  }
+  /* The little explanation under each privacy option, indented under
+     its radio like a Win98 dialog. */
+  .edit-blog-entry input[type=radio] ~ p,
+  .edit-blog-entry label + p,
+  .edit-blog-entry label + br + p {
+    margin: 2px 0 10px 19px !important;
+    color: #404040;
+  }
+
+  /* ---------- 7. Buttons ----------
+     Publish is the default button: thick black outline, like OK in
+     every Win98 dialog. */
+  /* Editor toolbar buttons are excluded: their icons are background
+     images, and repainting the background would wipe them out. */
+  .edit-blog-entry button:not(.wysiwyg *),
+  .edit-blog-entry input[type=submit],
+  .edit-blog-entry input[type=button] {
+    font-family: var(--uiFont, 'W98 Sans', Tahoma, 'MS Sans Serif', Geneva, sans-serif) !important;
+    font-size: 12px !important;
+    color: #000 !important;
+    min-width: 75px;
+    min-height: 23px;
+    padding: 0 12px !important;
+    background: var(--w98-face) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: var(--w98-raised);
+    cursor: default;
+  }
+  .edit-blog-entry button:not(.wysiwyg *):active,
+  .edit-blog-entry input[type=submit]:active {
+    box-shadow: var(--w98-pressed);
+    padding: 1px 11px 0 13px !important;
+  }
+  .edit-blog-entry button:not(.wysiwyg *):focus-visible,
+  .edit-blog-entry input[type=submit]:focus-visible {
+    outline: 1px dotted #000;
+    outline-offset: -4px;
+  }
+  /* .publish is the box AROUND the button on the live page, so it gets
+     no frame of its own. */
+  .edit-blog-entry .publish {
+    background: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .edit-blog-entry .publish button,
+  .edit-blog-entry .publish input[type=submit],
+  .edit-blog-entry button[type=submit]:not(.wysiwyg *),
+  .edit-blog-entry input[type=submit] {
+    min-height: 28px !important;
+    min-width: 140px;
+    font-weight: bold;
+    margin: 16px 0 6px 0 !important;
+    box-shadow: 0 0 0 1px #000, var(--w98-raised);
+  }
+
+  /* ---------- 8. Phones ----------
+     Under 30em SpaceHey stacks the columns. Keep the look, drop the
+     fixed widths. */
+  @media (max-width: 30em) {
+    .container { width: 100% !important; }
+    main .col.w-20, main .col.w-80 { width: 100% !important; }
+    .edit-blog-entry { margin: 0 6px; }
+    .edit-blog-entry::after { content: "Ready"; }
+  }
+}
