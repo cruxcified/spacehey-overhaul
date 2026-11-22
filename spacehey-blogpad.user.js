@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SpaceHey BlogPad
 // @namespace    spacehey-overhaul
-// @version      1.0.0
+// @version      1.1.0
 // @description  Turns blog.spacehey.com/edit into a Windows 98 writing app: a real window with focus mode, live word count, and automatic drafts so you never lose a post.
 // @author       Will
 // @license      MIT
@@ -37,6 +37,8 @@
     titleB: '#1084d0',       // title bar gradient, right
     paperLines: true,        // ruled lines in the writing area
     editorHeight: 480,       // writing area height in px
+    pageWidth: 1400,         // max page width in px (same widescreen as the home page style)
+    sideGutter: 3,           // space at the sides, in % of the window width
     autosaveSeconds: 3,
   };
 
@@ -70,6 +72,11 @@
   @font-face { font-family: 'BP Sans'; font-weight: bold;
     src: url('https://unpkg.com/98.css@0.1.21/dist/ms_sans_serif_bold.woff2') format('woff2'); }
 
+  /* Widescreen, same as the home page: grow with the window up to pageWidth. */
+  html.bp-on .container { width: calc(100vw - ${SETTINGS.sideGutter * 2}vw) !important;
+    max-width: ${SETTINGS.pageWidth}px !important; }
+  .bp-stretch { width: 100% !important; max-width: none !important; margin-left: 0 !important;
+    margin-right: 0 !important; float: none !important; box-sizing: border-box; }
   html.bp-on main { background: ${SETTINGS.desktop} !important; padding: 14px 0 22px !important; }
 
   /* Layout: tip window on the left, BlogPad window on the right. */
@@ -392,6 +399,11 @@
       const row = commonAncestor(tip, form);
       if (row && row !== document.body && row.tagName !== 'MAIN') {
         row.classList.add('bp-row');
+        // Anything between <main> and the row that limits the width gets
+        // stretched, so the window really uses the whole page.
+        for (let n = row.parentElement; n && n.tagName !== 'MAIN' && n !== document.body; n = n.parentElement) {
+          n.classList.add('bp-stretch');
+        }
         formCol = childOf(row, form) || form;
         const tipCol = childOf(row, tip);
         if (tipCol) tipCol.classList.add('bp-tipcol');
